@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  # ── Training service ────────────────────────────────────────────────────────
+  train:
+    build: .
+    image: perceptron-keras
+    container_name: perceptron_train
+    environment:
+      - EPOCHS=10
+      - BATCH_SIZE=128
+      - LOG_DIR=/app/logs
+      - MODEL_DIR=/app/model
+    volumes:
+      - ./logs:/app/logs
+      - ./model:/app/model
+    command: python perceptron.py
+
+  # ── TensorBoard service ──────────────────────────────────────────────────────
+  tensorboard:
+    image: tensorflow/tensorflow:2.15.0
+    container_name: perceptron_tensorboard
+    depends_on:
+      - train
+    volumes:
+      - ./logs:/logs
+    ports:
+      - "6006:6006"
+    command: tensorboard --logdir=/logs --host=0.0.0.0
+    restart: unless-stopped
